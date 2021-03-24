@@ -1,11 +1,11 @@
 <?php
-
 namespace PPApp\Services;
 
-use PPApp\Vos\WalletVo;
+use PPApp\Dto\WalletDto;
+use PPApp\Exceptions\User\UserWalletNotFoundException;
 use PPApp\Repositories\WalletRepository;
 
-class WalletService 
+class WalletService
 {
     /**
      * @var WalletRepository
@@ -17,10 +17,36 @@ class WalletService
         $this->walletRepository = $walletRepository;
     }
 
-    public function getWalletByUserId(int $id): WalletVo
+    /**
+     * arrayToWalletDto
+     *
+     * @param array $wallet
+     * @return WalletDto
+     */
+    private function arrayToWalletDto(array $wallet): WalletDto
     {
-        $wallet = $this->walletRepository->getWalletByUserId($id);
-        $walletVo = new WalletVo($wallet);
-        return $walletVo;
+        $uuid = $wallet["uuid"] ?? null;
+        $balance = $wallet["balance"] ?? null;
+
+        $walletDto = new WalletDto($uuid, $balance);
+        return $walletDto;
+    }
+
+    public function getWalletByUserId(int $userId): WalletDto
+    {
+        $wallet = $this->walletRepository->getWalletByUserId($userId);
+        if (empty($wallet)) {
+            throw new UserWalletNotFoundException();
+        }
+        return $this->arrayToWalletDto($wallet);
+    }
+
+    public function getWalletByUserUuid(string $uuid): WalletDto
+    {
+        $wallet = $this->walletRepository->getWalletByUserUuid($uuid);
+        if (empty($wallet)) {
+            throw new UserWalletNotFoundException();
+        }
+        return $this->arrayToWalletDto($wallet);
     }
 }

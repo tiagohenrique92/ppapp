@@ -1,36 +1,86 @@
 <?php
-
 namespace PPApp\Services;
 
-use PPApp\Vos\UserVo;
+use PPApp\Dto\UserDto;
+use PPApp\Exceptions\User\UserNotFoundException;
 use PPApp\Repositories\UserRepository;
 
-class UserService 
+class UserService
 {
     const USER_TYPE_PERSON = 1;
     const USER_TYPE_BUSINESS = 2;
-    
+
     /**
-    * @var UserRepository
-    */
+     * @var UserRepository
+     */
     private $userRepository;
-    
-    public function __construct(UserRepository $userRepository) 
+
+    public function __construct(UserRepository $userRepository)
     {
         $this->userRepository = $userRepository;
     }
 
-    public function getUserById(int $id): UserVo
+    /**
+     * arrayToUserDto
+     *
+     * @param array $user
+     * @return UserDto
+     */
+    private function arrayToUserDto(array $user): UserDto
+    {
+        $uuid = $user["uuid"] ?? null;
+        $name = $user["name"] ?? null;
+        $email = $user["email"] ?? null;
+        $password = $user["password"] ?? null;
+        $type = $user["type"] ?? null;
+
+        $userDto = new UserDto($uuid, $name, $email, $password, $type);
+        return $userDto;
+    }
+
+    /**
+     * getUserById
+     *
+     * @param integer $id
+     * @return UserDto
+     */
+    public function getUserById(int $id): UserDto
     {
         $user = $this->userRepository->getUserById($id);
-        $userVo = new UserVo($user);
-        return $userVo;
+        if (empty($user)) {
+            throw new UserNotFoundException();
+        }
+        return $this->arrayToUserDto($user);
     }
-    
-    public function getUserByUuid(string $uuid): UserVo
+
+    /**
+     * Undocumented function
+     *
+     * @param string $uuid
+     * @return UserDto
+     * @throws UserNotFoundException
+     */
+    public function getUserByUuid(string $uuid): UserDto
     {
         $user = $this->userRepository->getUserByUuid($uuid);
-        $userVo = new UserVo($user);
-        return $userVo;
+        if (empty($user)) {
+            throw new UserNotFoundException();
+        }
+        return $this->arrayToUserDto($user);
+    }
+
+    /**
+     * getUserIdByUuid
+     *
+     * @param string $uuid
+     * @return integer
+     */
+    public function getUserIdByUuid(string $uuid): int
+    {
+        $user = $this->userRepository->getUserByUuid($uuid);
+        if (empty($user)) {
+            throw new UserNotFoundException();
+        }
+        return $user["id"];
     }
 }

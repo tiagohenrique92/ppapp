@@ -1,5 +1,4 @@
 <?php
-
 namespace PPApp\Vos;
 
 use PPApp\Vos\UserVo;

@@ -1,5 +1,4 @@
 <?php
-
 namespace PPApp\Models\Vos;
 
 use PPApp\Vos\UserVo;

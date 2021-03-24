@@ -16,9 +16,15 @@ class WalletRepository implements RepositoryInterface
         $this->walletModel = $walletModel;
     }
 
-    public function getWalletByUserId(int $id): array
+    public function getWalletByUserId(int $userId): array
     {
-        $wallet = $this->walletModel::where('id', $id)->first();
+        $wallet = $this->walletModel::where('id_user', $userId)->first();
+        return (null !== $wallet) ? $wallet->toArray() : [];
+    }
+
+    public function getWalletByUserUuid(string $uuid): array
+    {
+        $wallet = $this->walletModel::where('uuid', $uuid)->first();
         return (null !== $wallet) ? $wallet->toArray() : [];
     }
 }

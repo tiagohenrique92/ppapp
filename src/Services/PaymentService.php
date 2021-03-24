@@ -1,38 +1,47 @@
 <?php
-
 namespace PPApp\Services;
 
 use DI\Container;
-use PPApp\Vos\UserVo;
-use PPApp\Vos\WalletVo;
-use PPApp\Vos\TransactionVo;
-use PPApp\Services\UserService;
-use PPApp\Services\WalletService;
+use PPApp\Dto\TransactionCreatedDto;
+use PPApp\Dto\TransactionCreateDto;
+use PPApp\Dto\UserDto;
+use PPApp\Exceptions\Payment\InvalidPaymentAmountException;
+use PPApp\Exceptions\Payment\PayeeNotFoundException;
+use PPApp\Exceptions\Payment\PayeeWalletNotFoundException;
+use PPApp\Exceptions\Payment\PayerAndPayeeAreTheSamePersonException;
+use PPApp\Exceptions\Payment\PayerIsBusinessUserException;
+use PPApp\Exceptions\Payment\PayerNotFoundException;
+use PPApp\Exceptions\Payment\PayerWalletInsufficientBalanceException;
+use PPApp\Exceptions\Payment\PayerWalletNotFoundException;
+use PPApp\Exceptions\User\UserNotFoundException;
+use PPApp\Exceptions\User\UserWalletNotFoundException;
 use PPApp\Repositories\TransactionRepository;
 use PPApp\Services\ExternalAuthorizationService;
+use PPApp\Services\UserService;
+use PPApp\Services\WalletService;
 
-class PaymentService 
+class PaymentService
 {
     /**
-    * @var ExternalAuthorizationService
-    */
+     * @var ExternalAuthorizationService
+     */
     private $externalAuthorizationService;
-    
+
     /**
-    * @var TransactionRepository
-    */
+     * @var TransactionRepository
+     */
     private $transactionRepository;
-    
+
     /**
-    * @var UserService
-    */
+     * @var UserService
+     */
     private $userService;
-    
+
     /**
-    * @var WalletService
-    */
+     * @var WalletService
+     */
     private $walletService;
-    
+
     public function __construct(Container $container, TransactionRepository $transactionRepository, UserService $userService, WalletService $walletService)
     {
         $this->externalAuthorizationService = $container->get("externalAuthorizationService");
@@ -40,105 +49,146 @@ class PaymentService
         $this->userService = $userService;
         $this->walletService = $walletService;
     }
-    
-    public function authorizeTransaction(TransactionVo $transactionVo)
+
+    public function authorizeTransaction()
     {
-        $a = $this->externalAuthorizationService->getAuthorization();
-        die('<pre>' . __FILE__ . '[' . __LINE__ . ']' . PHP_EOL . var_dump($a) . '</pre>');
+        $this->externalAuthorizationService->authorize();
     }
-    
-    public function getPayerByUuid(string $uuid): UserVo
+
+    /**
+     * transfer
+     *
+     * @param TransactionCreateDto $transactionCreateDto
+     * @return TransactionCreatedDto
+     */
+    public function transfer(TransactionCreateDto $transactionCreateDto): TransactionCreatedDto
     {
-        $payer = $this->userService->getUserByUuid($uuid);
-        
-        if (null === $payer->getId()) {
-            throw new \Exception("Payer not found");
-        }
-        
-        if ($payer->getType() === UserService::USER_TYPE_BUSINESS) {
-            throw new \Exception("The payer can't be a business user");
-        }
-        
-        return $payer;
+        $this->validateTransaction($transactionCreateDto);
+        $this->authorizeTransaction();
+        $this->transactionRepository->create($transactionCreatedDto);
+        // implementar insert no banco
+        // implementar notificacao
+        $uuid = "uuid-transaction";
+        $transactionCreatedDto = new TransactionCreatedDto($uuid);
+        return $transactionCreatedDto;
     }
-    
-    public function getPayeeByUuid(string $uuid): UserVo
-    {
-        $payee = $this->userService->getUserByUuid($uuid);
-        
-        if (null === $payee->getId()) {
-            throw new \Exception("Payee not found");
-        }
-        
-        return $payee;
-    }
-    
-    public function transfer(TransactionVo $transactionVo): void
-    {
-        $this->validateTransaction($transactionVo);
-        $this->authorizeTransaction($transactionVo);
-    }
-    
+
+    /**
+     * validateAmount
+     *
+     * @param float $amount
+     * @param float $balance
+     * @return void
+     * @throws InvalidPaymentAmountException
+     * @throws PayerWalletInsufficientBalanceException
+     */
     protected function validateAmount(float $amount, float $balance): void
     {
         if ($amount <= 0) {
-            throw new \Exception("Payment amount must be greater than zero");
+            throw new InvalidPaymentAmountException();
         }
-        
+
         if ($amount > $balance) {
-            throw new \Exception("Insulficient balance");
+            throw new PayerWalletInsufficientBalanceException();
         }
     }
-    
-    protected function validatePayer(UserVo $payer): void
+
+    /**
+     * payerUuid
+     *
+     * @param string $payerUuid
+     * @return void
+     * @throws PayerNotFoundException
+     * @throws PayerIsBusinessUserException
+     */
+    protected function validatePayer(string $payerUuid): void
     {
-        if (null === $payer->getId()) {
-            throw new \Exception("Payer not found");
+        try {
+            $payer = $this->userService->getUserByUuid($payerUuid);
+        } catch (UserNotFoundException $e) {
+            throw new PayerNotFoundException();
         }
-        
+
         if ($payer->getType() === UserService::USER_TYPE_BUSINESS) {
-            throw new \Exception("The payer can't be a business user");
+            throw new PayerIsBusinessUserException();
         }
     }
-    
-    protected function validatePayee(UserVo $payee, UserVo $payer): void
+
+    /**
+     * validatePayee
+     *
+     * @param string $payeeUuid
+     * @param string $payerUuid
+     * @return void
+     * @throws PayeeNotFoundException
+     * @throws PayerAndPayeeAreTheSamePersonException
+     */
+    protected function validatePayee(string $payeeUuid, string $payerUuid): void
     {
-        if (null === $payee->getId()) {
-            throw new \Exception("Payee not found");
+        try {
+            $payee = $this->userService->getUserByUuid($payeeUuid);
+        } catch (UserNotFoundException $e) {
+            throw new PayeeNotFoundException();
         }
-        
-        if ($payer->getId() === $payee->getId()) {
-            throw new \Exception("The payer must be different from the payee");
-        }
-    }
-    
-    protected function validatePayeeWallet(WalletVo $walletVo)
-    {
-        if (null === $walletVo->getId()) {
-            throw new \Exception("Payee wallet not found");
-        }
-    }
-    protected function validatePayerWallet(WalletVo $walletVo)
-    {
-        if (null === $walletVo->getId()) {
-            throw new \Exception("Payer wallet not found");
+
+        if ($payeeUuid === $payerUuid) {
+            throw new PayerAndPayeeAreTheSamePersonException();
         }
     }
-    
-    protected function validateTransaction(TransactionVo $transactionVo): void
+
+    /**
+     * validatePayeeWallet
+     *
+     * @param integer $payeeId
+     * @return void
+     * @throws PayeeWalletNotFoundException
+     */
+    protected function validatePayeeWallet(int $payeeId)
     {
-        $payer = $this->userService->getUserById($transactionVo->getIdPayer());
-        $this->validatePayer($payer);
-        
-        $payee = $this->userService->getUserById($transactionVo->getIdPayee());
-        $this->validatePayee($payee, $payer);
-        
-        $payer_wallet = $this->walletService->getWalletByUserId($transactionVo->getIdPayer());
-        $this->validatePayerWallet($payer_wallet);
-        
-        $payee_wallet = $this->walletService->getWalletByUserId($transactionVo->getIdPayee());
-        $this->validatePayeeWallet($payee_wallet);
-        
-        $this->validateAmount($transactionVo->getAmount(), $payer_wallet->getBalance());
+        try {
+            $walletDto = $this->walletService->getWalletByUserId($payeeId);
+        } catch (UserWalletNotFoundException $e) {
+            throw new PayeeWalletNotFoundException();
+        }
+    }
+
+    /**
+     * validatePayerWallet
+     *
+     * @param integer $payerId
+     * @return void
+     * @throws PayerWalletNotFoundException
+     */
+    protected function validatePayerWallet(int $payerId)
+    {
+        try {
+            $walletDto = $this->walletService->getWalletByUserId($payerId);
+        } catch (UserWalletNotFoundException $e) {
+            throw new PayerWalletNotFoundException();
+        }
+    }
+
+    /**
+     * validateTransaction
+     *
+     * @param TransactionCreateDto $transactionCreateDto
+     * @return void
+     */
+    protected function validateTransaction(TransactionCreateDto $transactionCreateDto): void
+    {
+        $payerUuid = $transactionCreateDto->getPayerUuid();
+        $payeeUuid = $transactionCreateDto->getPayeeUuid();
+
+        $this->validatePayer($payerUuid);
+        $this->validatePayee($payeeUuid, $payerUuid);
+
+        $idPayer = $this->userService->getUserIdByUuid($payerUuid);
+        $this->validatePayerWallet($idPayer);
+
+        $idPayee = $this->userService->getUserIdByUuid($payeeUuid);
+        $this->validatePayeeWallet($idPayee);
+
+        $payerWallet = $this->walletService->getWalletByUserId($idPayer);
+        $this->validateAmount($transactionCreateDto->getAmount(), $payerWallet->getBalance());
     }
 }
