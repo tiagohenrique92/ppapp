@@ -32,6 +32,16 @@ class WalletService
         return $walletDto;
     }
 
+    public function credit(int $idWallet, float $amount): bool
+    {
+        return $this->walletRepository->credit($idWallet, $amount);
+    }
+
+    public function debit(int $idWallet, float $amount): bool
+    {
+        return $this->walletRepository->debit($idWallet, $amount);
+    }
+
     public function getWalletByUserId(int $userId): WalletDto
     {
         $wallet = $this->walletRepository->getWalletByUserId($userId);
@@ -48,5 +58,14 @@ class WalletService
             throw new UserWalletNotFoundException();
         }
         return $this->arrayToWalletDto($wallet);
+    }
+
+    public function getWalletIdByUserId(int $userId): int
+    {
+        $wallet = $this->walletRepository->getWalletByUserId($userId);
+        if (empty($wallet)) {
+            throw new UserWalletNotFoundException();
+        }
+        return $wallet["id"];
     }
 }

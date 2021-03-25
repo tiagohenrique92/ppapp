@@ -1,9 +1,9 @@
 <?php
 namespace PPApp\Dto;
 
-use PPApp\Dto\DtoAbstract;
+use PPApp\Dto\DtoStandard;
 
-class WalletDto extends DtoAbstract
+class WalletDto extends DtoStandard
 {
     private $uuid;
     private $balance;

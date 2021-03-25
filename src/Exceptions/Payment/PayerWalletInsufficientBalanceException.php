@@ -2,14 +2,24 @@
 namespace PPApp\Exceptions\Payment;
 
 use Exception;
+use PPApp\Exceptions\DetailedExceptionInterface;
 use Throwable;
 
-class PayerWalletInsufficientBalanceException extends Exception
+class PayerWalletInsufficientBalanceException extends Exception implements DetailedExceptionInterface
 {
-    public function __construct(string $message = "", int $code = 0, Throwable $previous = null)
+    private const CODE = 9;
+    private const MESSAGE = "The payer's wallet has no sufficient balance";
+    private $details;
+
+    public static function create(array $details = null, Throwable $previous = null): DetailedExceptionInterface
     {
-        $code = 9;
-        $message = "The payer's wallet has no sufficient balance";
-        parent::__construct($message, $code, $previous);
+        $ex = new self(self::MESSAGE, self::CODE, $previous);
+        $ex->details = $details;
+        return $ex;
+    }
+
+    public function getDetails(): ?array
+    {
+        return $this->details;
     }
 }

@@ -25,12 +25,9 @@ class TransactionRepository implements RepositoryInterface
     {
         $transactionModel = $this->transactionModel;
         $transactionModel->uuid = $data['uuid'];
-        $transactionModel->datetime_created = $data['datetime_created'];
-        $transactionModel->datetime_authorized = $data['datetime_authorized'];
         $transactionModel->amount = $data['amount'];
-        $transactionModel->amount = $data['id_payer'];
+        $transactionModel->id_payer = $data['id_payer'];
         $transactionModel->id_payee = $data['id_payee'];
-        $transactionModel->status = $data['status'];
-        return $$transactionModel->save();
+        return $transactionModel->save();
     }
 }

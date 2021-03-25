@@ -2,9 +2,9 @@
 namespace PPApp\Services;
 
 use DI\Container;
+use Exception;
 use PPApp\Dto\TransactionCreatedDto;
 use PPApp\Dto\TransactionCreateDto;
-use PPApp\Dto\UserDto;
 use PPApp\Exceptions\Payment\InvalidPaymentAmountException;
 use PPApp\Exceptions\Payment\PayeeNotFoundException;
 use PPApp\Exceptions\Payment\PayeeWalletNotFoundException;
@@ -15,10 +15,12 @@ use PPApp\Exceptions\Payment\PayerWalletInsufficientBalanceException;
 use PPApp\Exceptions\Payment\PayerWalletNotFoundException;
 use PPApp\Exceptions\User\UserNotFoundException;
 use PPApp\Exceptions\User\UserWalletNotFoundException;
+use PPApp\Infra\DB;
 use PPApp\Repositories\TransactionRepository;
 use PPApp\Services\ExternalAuthorizationService;
 use PPApp\Services\UserService;
 use PPApp\Services\WalletService;
+use PPApp\Utils\Uuid;
 
 class PaymentService
 {
@@ -65,10 +67,42 @@ class PaymentService
     {
         $this->validateTransaction($transactionCreateDto);
         $this->authorizeTransaction();
-        $this->transactionRepository->create($transactionCreatedDto);
-        // implementar insert no banco
-        // implementar notificacao
-        $uuid = "uuid-transaction";
+
+        $uuid = Uuid::create();
+        $idPayer = $this->userService->getUserIdByUuid($transactionCreateDto->getPayerUuid());
+        $idPayee = $this->userService->getUserIdByUuid($transactionCreateDto->getPayeeUuid());
+        $amount = $transactionCreateDto->getAmount();
+
+        $data = array(
+            "uuid" => $uuid,
+            "amount" => $amount,
+            "id_payer" => $idPayer,
+            "id_payee" => $idPayee,
+        );
+
+        DB::transaction(function () use ($data, $idPayer, $idPayee, $amount) {
+            $transactionCreated = $this->transactionRepository->create($data);
+
+            if (false === $transactionCreated) {
+                throw new Exception("falha ao criar transacao");
+            }
+
+            $idWalletPayer = $this->walletService->getWalletIdByUserId($idPayer);
+            $debited = $this->walletService->debit($idWalletPayer, $amount);
+
+            if (false === $debited) {
+                throw new Exception("falha ao debitar transacao");
+            }
+
+            $idWalletPayee = $this->walletService->getWalletIdByUserId($idPayee);
+            $credited = $this->walletService->credit($idWalletPayee, $amount);
+
+            if (false === $credited) {
+                throw new Exception("falha ao creditar transacao");
+            }
+        });
+
+        // @todo implementar notificacao
         $transactionCreatedDto = new TransactionCreatedDto($uuid);
         return $transactionCreatedDto;
     }
@@ -85,11 +119,11 @@ class PaymentService
     protected function validateAmount(float $amount, float $balance): void
     {
         if ($amount <= 0) {
-            throw new InvalidPaymentAmountException();
+            throw InvalidPaymentAmountException::create(array("amount" => $amount));
         }
 
         if ($amount > $balance) {
-            throw new PayerWalletInsufficientBalanceException();
+            throw PayerWalletInsufficientBalanceException::create();
         }
     }
 
@@ -106,11 +140,11 @@ class PaymentService
         try {
             $payer = $this->userService->getUserByUuid($payerUuid);
         } catch (UserNotFoundException $e) {
-            throw new PayerNotFoundException();
+            throw PayerNotFoundException::create(array("payerUuid" => $payerUuid));
         }
 
         if ($payer->getType() === UserService::USER_TYPE_BUSINESS) {
-            throw new PayerIsBusinessUserException();
+            throw PayerIsBusinessUserException::create(array("payerUuid" => $payerUuid));
         }
     }
 
@@ -128,11 +162,14 @@ class PaymentService
         try {
             $payee = $this->userService->getUserByUuid($payeeUuid);
         } catch (UserNotFoundException $e) {
-            throw new PayeeNotFoundException();
+            throw PayeeNotFoundException::create(array("payeeUuid" => $payeeUuid));
         }
 
         if ($payeeUuid === $payerUuid) {
-            throw new PayerAndPayeeAreTheSamePersonException();
+            throw PayerAndPayeeAreTheSamePersonException::create(array(
+                "payerUuid" => $payerUuid,
+                "payeeUuid" => $payeeUuid,
+            ));
         }
     }
 
@@ -148,7 +185,7 @@ class PaymentService
         try {
             $walletDto = $this->walletService->getWalletByUserId($payeeId);
         } catch (UserWalletNotFoundException $e) {
-            throw new PayeeWalletNotFoundException();
+            throw PayeeWalletNotFoundException::create(array("payeeId" => $payeeId));
         }
     }
 
@@ -164,7 +201,7 @@ class PaymentService
         try {
             $walletDto = $this->walletService->getWalletByUserId($payerId);
         } catch (UserWalletNotFoundException $e) {
-            throw new PayerWalletNotFoundException();
+            throw PayerWalletNotFoundException::create(array("payerId" => $payerId));
         }
     }
 

@@ -2,14 +2,24 @@
 namespace PPApp\Exceptions\Payment;
 
 use Exception;
+use PPApp\Exceptions\DetailedExceptionInterface;
 use Throwable;
 
-class InvalidPaymentAmountException extends Exception
+class InvalidPaymentAmountException extends Exception implements DetailedExceptionInterface
 {
-    public function __construct(string $message = "", int $code = 0, Throwable $previous = null)
+    private const CODE = 10;
+    private const MESSAGE = "Invalid payment amount";
+    private $details;
+
+    public static function create(array $details = null, Throwable $previous = null): DetailedExceptionInterface
     {
-        $code = 10;
-        $message = "Invalid payment amount";
-        parent::__construct($message, $code, $previous);
+        $ex = new self(self::MESSAGE, self::CODE, $previous);
+        $ex->details = $details;
+        return $ex;
+    }
+
+    public function getDetails(): ?array
+    {
+        return $this->details;
     }
 }

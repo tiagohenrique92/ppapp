@@ -1,9 +1,9 @@
 <?php
 namespace PPApp\Dto;
 
-use PPApp\Dto\DtoAbstract;
+use PPApp\Dto\DtoStandard;
 
-class TransactionCreateDto extends DtoAbstract
+class TransactionCreateDto extends DtoStandard
 {
     private $payerUuid;
     private $payeeUuid;

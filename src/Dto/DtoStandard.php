@@ -3,9 +3,9 @@ namespace PPApp\Dto;
 
 use ReflectionClass;
 
-abstract class DtoAbstract
+class DtoStandard
 {
-    public function toJson(): string
+    public function toArray(): array
     {
         $reflect = new ReflectionClass($this);
         $properties = $reflect->getProperties();
@@ -16,6 +16,10 @@ abstract class DtoAbstract
             $data[$property->getName()] = $this->$getter();
         }
 
-        return json_encode($data);
+        return $data;
+    }
+    public function toJson(): string
+    {
+        return json_encode($this->toArray());
     }
 }

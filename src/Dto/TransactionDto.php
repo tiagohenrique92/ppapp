@@ -1,27 +1,23 @@
 <?php
 namespace PPApp\Dto;
 
-use PPApp\Dto\DtoAbstract;
+use PPApp\Dto\DtoStandard;
 
-class TransactionDto extends DtoAbstract
+class TransactionDto extends DtoStandard
 {
     private $uuid;
     private $idPayer;
     private $idPayee;
     private $amount;
-    private $datetimeCreated;
-    private $datetimeAuthorized;
-    private $status;
+    private $createdAt;
 
-    public function __construct(string $uuid, int $idPayer, int $idPayee, float $amount, string $datetimeCreated, string $datetimeAuthorized, int $status)
+    public function __construct(string $uuid, int $idPayer, int $idPayee, float $amount, string $createdAt)
     {
         $this->uuid = $uuid;
         $this->idPayer = $idPayer;
         $this->idPayee = $idPayee;
         $this->amount = $amount;
-        $this->datetimeCreated = $datetimeCreated;
-        $this->datetimeAuthorized = $datetimeAuthorized;
-        $this->status = $status;
+        $this->createdAt = $createdAt;
     }
 
     public function getUuid(): ?string
@@ -29,14 +25,9 @@ class TransactionDto extends DtoAbstract
         return $this->uuid;
     }
 
-    public function getDatetimeAuthorized(): ?string
+    public function getCreatedAt(): ?string
     {
-        return $this->datetimeAuthorized;
-    }
-
-    public function getDatetimeCreated(): ?string
-    {
-        return $this->datetimeCreated;
+        return $this->createdAt;
     }
 
     public function getAmount(): ?float
@@ -52,10 +43,5 @@ class TransactionDto extends DtoAbstract
     public function getIdPayee(): ?int
     {
         return $this->idPayee;
-    }
-
-    public function getStatus(): ?int
-    {
-        return $this->status;
     }
 }

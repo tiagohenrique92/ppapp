@@ -16,6 +16,20 @@ class WalletRepository implements RepositoryInterface
         $this->walletModel = $walletModel;
     }
 
+    public function credit(int $id, float $amount): bool
+    {
+        $wallet = $this->walletModel::find($id);
+        $wallet->balance += $amount;
+        return $wallet->save();
+    }
+    
+    public function debit(int $id, float $amount): bool
+    {
+        $wallet = $this->walletModel::find($id);
+        $wallet->balance -= $amount;
+        return $wallet->save();
+    }
+
     public function getWalletByUserId(int $userId): array
     {
         $wallet = $this->walletModel::where('id_user', $userId)->first();
