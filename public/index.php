@@ -13,6 +13,7 @@ use Slim\Factory\AppFactory;
 use Slim\Routing\RouteCollectorProxy;
 
 require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../app/config.php';
 require __DIR__ . '/../app/bootstrap.php';
 
 $container = new Container();

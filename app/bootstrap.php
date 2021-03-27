@@ -1,6 +1,6 @@
 <?php
 
-date_default_timezone_set("America/Sao_Paulo");
+date_default_timezone_set(APP_TIMEZONE);
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 use PPApp\Infra\DB;
@@ -9,10 +9,12 @@ $capsule = new Capsule;
 
 $capsule->addConnection(array(
     "driver" => "mysql",
-    "host" => "localhost",
-    "database" => "ppapp",
-    "username" => "root",
-    "password" => "root",
+    "host" => DB_HOST,
+    "database" => DB_NAME,
+    "username" => DB_USER,
+    "password" => DB_PASSWORD,
+    'charset' => DB_CHARSET,
+    'collation' => DB_COLLATION,
 ));
 
 $capsule->setAsGlobal();

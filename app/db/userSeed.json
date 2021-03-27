@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "uuid": "1eb8f484-5467-6396-afbf-02423599a7ad",
+        "name": "Person User 1",
+        "email": "person.user.1@email.com",
+        "password": "000001",
+        "type": 1,
+        "cpf": "09448789033",
+        "wallet": {
+            "id": 1,
+            "uuid": "1eb8f528-31a3-6e5a-96cf-02423599a7ad",
+            "id_user": 1,
+            "balance": 1000.00
+        }
+    },
+    {
+        "id": 2,
+        "uuid": "1eb8f499-ee1a-6dd4-8425-02423599a7ad",
+        "name": "Person User 2",
+        "email": "person.user.2@email.com",
+        "password": "000002",
+        "type": 1,
+        "cpf": "30992746078",
+        "wallet": {
+            "id": 2,
+            "uuid": "1eb8f528-fc05-6dc4-ad9e-02423599a7ad",
+            "id_user": 2,
+            "balance": 1000.00
+        }
+    },
+    {
+        "id": 3,
+        "uuid": "1eb8f49b-f137-67fe-8313-02423599a7ad",
+        "name": "Business User 1",
+        "email": "business.user.1@email.com",
+        "password": "000001",
+        "type": 2,
+        "cnpj": "33673616000182",
+        "wallet": {
+            "id": 3,
+            "uuid": "1eb8f529-3664-67fe-85c3-02423599a7ad",
+            "id_user": 3,
+            "balance": 1000.00
+        }
+    },
+    {
+        "id": 4,
+        "uuid": "1eb8f49c-2d14-6574-8fc6-02423599a7ad",
+        "name": "Business User 2",
+        "email": "business.user.2@email.com",
+        "password": "000002",
+        "type": 2,
+        "cnpj": "22336370000137",
+        "wallet": {
+            "id": 4,
+            "uuid": "1eb8f529-6e36-693e-9b97-02423599a7ad",
+            "id_user": 4,
+            "balance": 1000.00
+        }
+    }
+]
