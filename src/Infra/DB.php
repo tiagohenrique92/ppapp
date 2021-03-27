@@ -72,6 +72,13 @@ class DB
         }
     }
 
+    /**
+     * transaction
+     *
+     * @param Closure $callback
+     * @param integer $attempts
+     * @return void
+     */
     public static function transaction(Closure $callback, $attempts = 1)
     {
         self::checkConnection();

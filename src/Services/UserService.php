@@ -54,18 +54,30 @@ class UserService
     }
 
     /**
-     * Undocumented function
+     * getUserByUuidAsArray
      *
      * @param string $uuid
-     * @return UserDto
+     * @return array
      * @throws UserNotFoundException
      */
-    public function getUserByUuid(string $uuid): UserDto
+    private function getUserByUuidAsArray(string $uuid): array
     {
         $user = $this->userRepository->getUserByUuid($uuid);
         if (empty($user)) {
             throw new UserNotFoundException();
         }
+        return $user;
+    }
+
+    /**
+     * getUserByUuid
+     *
+     * @param string $uuid
+     * @return UserDto
+     */
+    public function getUserByUuid(string $uuid): UserDto
+    {
+        $user = $this->getUserByUuidAsArray($uuid);
         return $this->arrayToUserDto($user);
     }
 
@@ -77,10 +89,19 @@ class UserService
      */
     public function getUserIdByUuid(string $uuid): int
     {
-        $user = $this->userRepository->getUserByUuid($uuid);
-        if (empty($user)) {
-            throw new UserNotFoundException();
-        }
+        $user = $this->getUserByUuidAsArray($uuid);
         return $user["id"];
+    }
+
+    /**
+     * getUserNameByUuid
+     *
+     * @param string $uuid
+     * @return string
+     */
+    public function getUserNameByUuid(string $uuid): string
+    {
+        $user = $this->getUserByUuidAsArray($uuid);
+        return $user["name"];
     }
 }

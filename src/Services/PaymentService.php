@@ -3,6 +3,7 @@ namespace PPApp\Services;
 
 use DI\Container;
 use Exception;
+use Monolog\Logger;
 use PPApp\Dto\TransactionCreatedDto;
 use PPApp\Dto\TransactionCreateDto;
 use PPApp\Exceptions\Payment\InvalidPaymentAmountException;
@@ -13,21 +14,35 @@ use PPApp\Exceptions\Payment\PayerIsBusinessUserException;
 use PPApp\Exceptions\Payment\PayerNotFoundException;
 use PPApp\Exceptions\Payment\PayerWalletInsufficientBalanceException;
 use PPApp\Exceptions\Payment\PayerWalletNotFoundException;
+use PPApp\Exceptions\Payment\PaymentExternalNotificationException;
 use PPApp\Exceptions\User\UserNotFoundException;
 use PPApp\Exceptions\User\UserWalletNotFoundException;
 use PPApp\Infra\DB;
 use PPApp\Repositories\TransactionRepository;
 use PPApp\Services\ExternalAuthorizationService;
+use PPApp\Services\ExternalNotificationService;
 use PPApp\Services\UserService;
 use PPApp\Services\WalletService;
 use PPApp\Utils\Uuid;
 
 class PaymentService
 {
+    const PAYMENT_NOTIFICATION_QUEUE = "payment";
+
     /**
      * @var ExternalAuthorizationService
      */
     private $externalAuthorizationService;
+
+    /**
+     * @var ExternalNotificationService
+     */
+    private $externalNotificationService;
+
+    /**
+     * @var Logger
+     */
+    private $logger;
 
     /**
      * @var TransactionRepository
@@ -46,42 +61,32 @@ class PaymentService
 
     public function __construct(Container $container, TransactionRepository $transactionRepository, UserService $userService, WalletService $walletService)
     {
+        $this->logger = $container->get("logger");
         $this->externalAuthorizationService = $container->get("externalAuthorizationService");
+        $this->externalNotificationService = $container->get("externalNotificationService");
         $this->transactionRepository = $transactionRepository;
         $this->userService = $userService;
         $this->walletService = $walletService;
     }
 
-    public function authorizeTransaction()
-    {
-        $this->externalAuthorizationService->authorize();
-    }
-
     /**
-     * transfer
+     * registerTransactionDatabase
      *
-     * @param TransactionCreateDto $transactionCreateDto
-     * @return TransactionCreatedDto
+     * @param string $uuid
+     * @param integer $idPayer
+     * @param integer $idPayee
+     * @param float $amount
+     * @return void
      */
-    public function transfer(TransactionCreateDto $transactionCreateDto): TransactionCreatedDto
+    private function registerTransactionDatabase(string $uuid, int $idPayer, int $idPayee, float $amount): void
     {
-        $this->validateTransaction($transactionCreateDto);
-        $this->authorizeTransaction();
-
-        $uuid = Uuid::create();
-        $idPayer = $this->userService->getUserIdByUuid($transactionCreateDto->getPayerUuid());
-        $idPayee = $this->userService->getUserIdByUuid($transactionCreateDto->getPayeeUuid());
-        $amount = $transactionCreateDto->getAmount();
-
-        $data = array(
-            "uuid" => $uuid,
-            "amount" => $amount,
-            "id_payer" => $idPayer,
-            "id_payee" => $idPayee,
-        );
-
-        DB::transaction(function () use ($data, $idPayer, $idPayee, $amount) {
-            $transactionCreated = $this->transactionRepository->create($data);
+        DB::transaction(function () use ($uuid, $idPayer, $idPayee, $amount) {
+            $transactionCreated = $this->transactionRepository->create(array(
+                "uuid" => $uuid,
+                "id_payer" => $idPayer,
+                "id_payee" => $idPayee,
+                "amount" => $amount,
+            ));
 
             if (false === $transactionCreated) {
                 throw new Exception("falha ao criar transacao");
@@ -101,8 +106,57 @@ class PaymentService
                 throw new Exception("falha ao creditar transacao");
             }
         });
+    }
 
-        // @todo implementar notificacao
+    /**
+     * sendTransactionNotification
+     *
+     * @param array $payload
+     * @return void
+     */
+    private function sendTransactionNotification(array $payload): void
+    {
+        try {
+            $this->externalNotificationService->send(json_encode($payload), self::PAYMENT_NOTIFICATION_QUEUE);
+        } catch (PaymentExternalNotificationException $e) {
+            try {
+                $this->logger->critical($e->getMessage(), array(
+                    "details" => $e->getDetails(),
+                    "trace" => $e->getTraceAsString(),
+                ));
+            } catch (Exception $e) {
+                die('<pre>' . __FILE__ . '[' . __LINE__ . ']' . PHP_EOL . print_r($e->getMessage(), true) . '</pre>');
+            }
+        } catch (Exception $e) {
+            $this->logger->critical($e->getMessage(), array(
+                "trace" => $e->getTraceAsString(),
+            ));
+        }
+    }
+
+    /**
+     * transfer
+     *
+     * @param TransactionCreateDto $transactionCreateDto
+     * @return TransactionCreatedDto
+     */
+    public function transfer(TransactionCreateDto $transactionCreateDto): TransactionCreatedDto
+    {
+        $this->validateTransaction($transactionCreateDto);
+        $this->externalAuthorizationService->authorize();
+
+        $uuid = Uuid::create();
+        $idPayer = $this->userService->getUserIdByUuid($transactionCreateDto->getPayerUuid());
+        $idPayee = $this->userService->getUserIdByUuid($transactionCreateDto->getPayeeUuid());
+        $amount = $transactionCreateDto->getAmount();
+        $payerName = $this->userService->getUserNameByUuid($transactionCreateDto->getPayerUuid());
+
+        $this->registerTransactionDatabase($uuid, $idPayer, $idPayee, $amount);
+        $this->sendTransactionNotification(array(
+            "payee" => $transactionCreateDto->getPayeeUuid(),
+            "message" => "You have received a new payment of {{$amount}} from {{$payerName}}.",
+        ));
+
         $transactionCreatedDto = new TransactionCreatedDto($uuid);
         return $transactionCreatedDto;
     }

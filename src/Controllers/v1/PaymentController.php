@@ -29,21 +29,20 @@ class PaymentController
 
     public function transfer(Request $request, Response $response, array $args): Response
     {
-        $payloadResponse = null;
         $data = $request->getParsedBody();
-
+        
         if (!isset($data['payerUuid']) || empty($data['payerUuid'])) {
             throw ParamNotFoundException::create(array("name" => "payerUuid"));
         }
-
+        
         if (!isset($data['payeeUuid']) || empty($data['payeeUuid'])) {
             throw ParamNotFoundException::create(array("name" => "payeeUuid"));
         }
-
+        
         if (!isset($data['amount']) || empty($data['amount'])) {
             throw ParamNotFoundException::create(array("name" => "amount"));
         }
-
+        
         $transactionCreateDto = new TransactionCreateDto($data['payerUuid'], $data['payeeUuid'], $data['amount']);
         $transactionCreatedDto = $this->paymentService->transfer($transactionCreateDto);
 
