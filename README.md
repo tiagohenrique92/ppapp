@@ -73,53 +73,12 @@ Crie uma entrada para o virtual host no arquivo `/etc/hosts`.
 
 ## API
 
-Segue abaixo a lista de métodos suportados pela API.
+No link abaixo você encontrará a documentação da API e no diretório `/ppapp/postman` você encontrará a *collection* do Postman.
+> [https://documenter.getpostman.com/view/15054112/TzCL7njZ#ppapp](https://documenter.getpostman.com/view/15054112/TzCL7njZ#ppapp)
 
-### /api/v1/payment/transfer
-#### POST
-Realiza uma transferência entre dois usuários
+## Testes
 
-**Request**
-```json
-{
-    "payerUuid": "1eb8f484-5467-6396-afbf-02423599a7ad",
-    "payeeUuid": "1eb8f484-5467-6396-afbf-02423599a7ad",
-    "amount": 50
-}
+Na raiz do projeto (ppapp), utilize o comando abaixo para executar os testes.
+```bash
+$ ./vendor/bin/phpunit --testdox --colors tests
 ```
-
-| Propriedade | Tipo          | Obrigatório | Descrição          |
-|-------------|---------------|-------------|--------------------|
-| payerUuid   | string(36)    | Sim         | Uuid do pagador.   |
-| payeeUuid   | string(36)    | Sim         | Uuid do recebedor. |
-| amount      | decimal(16,2) | Sim         | Valor transferido. |
-
-**Response**
-```json
-{
-    "uuid": "1eb8fc74-fe42-61fc-ae05-024261ea6440"
-}
-```
-
-| Propriedade | Tipo       | Descrição          |
-|-------------|------------|--------------------|
-| uuid        | string(36) | Uuid da transação. |
-
-## Lista de erros
-
-| Code | Title                                        | Message                                      | Description                                                                                                                                                                      |
-|------|----------------------------------------------|----------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1    | Unexpected error                             | Unexpected error                             | An unexpected error has occurred. Please contact support.                                                                                                                        |
-| 2    | Param not found                              | Param not found                              | Request parameter not found in the payload. The "details.name" property will return the name of the parameter.                                                                   |
-| 3    | Payer not found                              | Payer not found                              | The transaction payer was not found. The "details.payerUuid" property will return the payer uuid.                                                                                |
-| 4    | Payee not found                              | Payee not found                              | The transaction payee was not found. The "details.payeeUuid" property will return the payee uuid.                                                                                |
-| 5    | The payer is a business user                 | The payer can't be a business user           | The payer can't be a business user. The "details.payerUuid" property will return the payer uuid.                                                                                 |
-| 6    | The payer and the payee are the same user    | The payer must be different from the payee   | The payer must be different from the payee. The "details.payerUuid" property will return the payer uuid and the "details.payeeUuid" property will return the payee uuid.         |
-| 7    | Payee's wallet not found                     | Payee's wallet not found                     | Payee's wallet not found. The "details.payeeUuid" property will return the payee uuid.                                                                                           |
-| 8    | Payer's wallet not found                     | Payer's wallet not found                     | Payer's wallet not found. The "details.payerUuid" property will return the payer uuid.                                                                                           |
-| 9    | The payer's wallet has no sufficient balance | The payer's wallet has no sufficient balance | The payer's wallet has no sufficient balance.                                                                                                                                    |
-| 10   | Invalid payment amount                       | Invalid payment amount                       | Invalid payment amount. The "details.amount" property will return the payment amount. Make sure that the payment amount is greater than zero and that it is formatted correctly. |
-| 11   | User not found                               | User not found                               | The user was not found. The "details.userUuid" property will return the user uuid.                                                                                               |
-| 12   | User's wallet not found                      | User's wallet not found                      | User's wallet not found. The "details.userUuid" property will return the user uuid.                                                                                              |
-| 13   | Failed to authorize the transaction          | Failed to authorize the transaction          | Failed to authorize the transaction. Please contact support.                                                                                                                     |
-| 14   | Failed to sent the transaction notfication   | Failed to sent the transaction notfication   | Failed to sent the transaction notfication. Please contact support.                                                                                                              |
