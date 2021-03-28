@@ -1,6 +1,5 @@
 <?php
 declare (strict_types = 1);
-namespace PPApp;
 
 use Illuminate\Database\Schema\Blueprint;
 use \PPApp\Migration\Migration;

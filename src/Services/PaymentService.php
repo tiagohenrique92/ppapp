@@ -1,7 +1,6 @@
 <?php
 namespace PPApp\Services;
 
-use DI\Container;
 use Exception;
 use Monolog\Logger;
 use PPApp\Dto\TransactionCreatedDto;
@@ -59,11 +58,11 @@ class PaymentService
      */
     private $walletService;
 
-    public function __construct(Container $container, TransactionRepository $transactionRepository, UserService $userService, WalletService $walletService)
+    public function __construct(Logger $logger, ExternalAuthorizationService $externalAuthorizationService, ExternalNotificationService $externalNotificationService, TransactionRepository $transactionRepository, UserService $userService, WalletService $walletService)
     {
-        $this->logger = $container->get("logger");
-        $this->externalAuthorizationService = $container->get("externalAuthorizationService");
-        $this->externalNotificationService = $container->get("externalNotificationService");
+        $this->logger = $logger;
+        $this->externalAuthorizationService = $externalAuthorizationService;
+        $this->externalNotificationService = $externalNotificationService;
         $this->transactionRepository = $transactionRepository;
         $this->userService = $userService;
         $this->walletService = $walletService;
@@ -119,14 +118,10 @@ class PaymentService
         try {
             $this->externalNotificationService->send(json_encode($payload), self::PAYMENT_NOTIFICATION_QUEUE);
         } catch (PaymentExternalNotificationException $e) {
-            try {
-                $this->logger->critical($e->getMessage(), array(
-                    "details" => $e->getDetails(),
-                    "trace" => $e->getTraceAsString(),
-                ));
-            } catch (Exception $e) {
-                die('<pre>' . __FILE__ . '[' . __LINE__ . ']' . PHP_EOL . print_r($e->getMessage(), true) . '</pre>');
-            }
+            $this->logger->critical($e->getMessage(), array(
+                "details" => $e->getDetails(),
+                "trace" => $e->getTraceAsString(),
+            ));
         } catch (Exception $e) {
             $this->logger->critical($e->getMessage(), array(
                 "trace" => $e->getTraceAsString(),
