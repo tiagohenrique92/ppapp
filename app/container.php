@@ -40,10 +40,6 @@ $container->set(WalletService::class, function () {
     $walletService = new WalletService(new WalletRepository(new WalletModel()));
     return $walletService;
 });
-$container->set(UserService::class, function () {
-    $userService = new UserService(new UserRepository(new UserModel()));
-    return $userService;
-});
 $container->set(PaymentService::class, function (ContainerInterface $container) {
     $logger = $container->get("logger");
     $externalAuthorizationService = $container->get("externalAuthorizationService");
