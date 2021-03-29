@@ -1,3 +1,5 @@
 logs/*
 vendor/*
 composer.lock
+docker/nginx/logs/myppapp.test.error.log
+docker/nginx/logs/myppapp.test.access.log
