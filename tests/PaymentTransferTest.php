@@ -42,7 +42,7 @@ final class PaymentTransferTest extends TestCase
         $this->walletFactory = new WalletModelFactory();
         $this->http = new Client(array(
             "verify" => false,
-            "base_uri" => "https://myppapp.test/api/v1/payment",
+            "base_uri" => "http://myppapp.test/api/v1/payment",
             "http_errors" => false,
         ));
     }

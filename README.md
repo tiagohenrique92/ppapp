@@ -13,9 +13,20 @@ Após baixar o projeto, acesse o diretório principal `ppapp` e execute o compos
 $ composer install
 ```
 
+Execute o docker para subir o projeto.
+```bash
+$ docker-compose up
+```
+
 Modifique o arquivo `ppapp/app/config.php` com as informações de conexão com o banco de dados: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT`.
 
 > Certifique-se de que o banco de dados informado já esteja criado, caso contrário o próximo passo irá falhar.
+
+Acesse o container ppapp:
+
+```bash
+$ docker exec -it ppapp sh
+```
 
 Na raiz do projeto (ppapp), execute o comando para criar as tabelas do banco de dados (migration).
 
@@ -33,40 +44,7 @@ $ php vendor/bin/phinx seed:run -c app/phinx.php
 
 > A propriedade `type` deve ser 1 para usuários comuns(cpf) e 2 para usuários empresariais(cnpj).
 
-Crie um virtual host apontando para o diretório `public`.
-```
-# http
-<VirtualHost myppapp.test:80>
-    DocumentRoot "/home/user/ppapp/public"
-    ServerName myppapp.test
-    ErrorLog "/home/user/ppapp/logs/ppapp.test-error_log"
-    CustomLog "/home/user/ppapp/logs/ppapp.test-access_log" common
-
-    <Directory "/home/user/ppapp/public">
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
-
-# https
-<VirtualHost myppapp.test:443>
-    DocumentRoot "/home/user/ppapp/public"
-    ServerName myppapp.test
-    ErrorLog "/home/user/ppapp/logs/ppapp.test-error_log"
-    CustomLog "/home/user/ppapp/logs/ppapp.test-access_log" common
-
-    SSLEngine on
-    SSLCertificateFile "/opt/lampp/etc/ssl.crt/myppapp/server.crt"
-    SSLCertificateKeyFile "/opt/lampp/etc/ssl.key/myppapp/server.key"
-
-    <Directory "/home/user/ppapp/public">
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
-```
-
-Crie uma entrada para o virtual host no arquivo `/etc/hosts`.
+Crie uma entrada para o virtual host no seu arquivo de hosts.
 ```
 127.0.0.1 myppapp.test
 ```
@@ -78,7 +56,7 @@ No link abaixo você encontrará a documentação da API e no diretório `/ppapp
 
 ## Testes
 
-Na raiz do projeto (ppapp), utilize o comando abaixo para executar os testes.
+Acesse o container ppapp e na raiz do projeto (ppapp), utilize o comando abaixo para executar os testes.
 ```bash
 $ ./vendor/bin/phpunit --testdox --colors tests
 ```

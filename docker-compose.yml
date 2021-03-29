@@ -1,0 +1,37 @@
+version: '2'
+
+services:
+    myppapp.test:
+        image: nginx:latest
+        container_name: myppapp.test
+        ports:
+            - "80:80"
+        volumes:
+            - ./:/var/www/html
+            - ./docker/nginx/conf:/etc/nginx/conf.d
+            - ./docker/nginx/logs:/var/log/nginx/
+        depends_on:
+            - ppapp
+
+    ppapp:
+        build: docker/php
+        container_name: ppapp
+        volumes:
+            - ./:/var/www/html
+        depends_on:
+            - db
+        links:
+            - db
+
+    db:
+        container_name: db
+        image: mysql:5.7
+        restart: always
+        expose:
+            - 3306
+        ports:
+            - "3306:3306"
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=ppapp
+

@@ -187,7 +187,7 @@
 	"variable": [
 		{
 			"key": "url",
-			"value": "https://myppapp.test"
+			"value": "http://myppapp.test"
 		}
 	]
 }

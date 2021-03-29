@@ -1,6 +1,6 @@
 <?php
 define("APP_TIMEZONE", "America/Sao_Paulo");
-define("DB_HOST", "localhost");
+define("DB_HOST", "db");
 define("DB_NAME", "ppapp");
 define("DB_USER", "root");
 define("DB_PASSWORD", "root");
