@@ -9,6 +9,7 @@ use PPApp\Exceptions\Payment\InvalidPaymentAmountException;
 use PPApp\Exceptions\Payment\PayerAndPayeeAreTheSamePersonException;
 use PPApp\Exceptions\Payment\PayerIsBusinessUserException;
 use PPApp\Exceptions\Payment\PayerWalletInsufficientBalanceException;
+use PPApp\Models\UserModel;
 use PPApp\Repositories\TransactionRepository;
 use PPApp\Services\ExternalAuthorizationService;
 use PPApp\Services\ExternalNotificationService;
@@ -39,7 +40,7 @@ final class PaymentTest extends TestCase
         $name = "Person User 1";
         $email = "person.user.1@email.com";
         $password = "000001";
-        $type = UserService::USER_TYPE_PERSON;
+        $type = UserModel::USER_TYPE_PERSON;
         $userDto = new UserDto($uuid, $name, $email, $password, $type);
         return $userDto;
     }
@@ -49,7 +50,7 @@ final class PaymentTest extends TestCase
         $name = "Business User 1";
         $email = "business.user.1@email.com";
         $password = "000001";
-        $type = UserService::USER_TYPE_BUSINESS;
+        $type = UserModel::USER_TYPE_BUSINESS;
         $userDto = new UserDto($uuid, $name, $email, $password, $type);
         return $userDto;
     }

@@ -7,9 +7,6 @@ use PPApp\Repositories\UserRepository;
 
 class UserService
 {
-    const USER_TYPE_PERSON = 1;
-    const USER_TYPE_BUSINESS = 2;
-
     /**
      * @var UserRepository
      */

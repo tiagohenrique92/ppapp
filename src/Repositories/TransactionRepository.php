@@ -6,10 +6,10 @@ use PPApp\Models\TransactionModel;
 class TransactionRepository implements RepositoryInterface
 {
     /**
-    * @var TransactionModel
-    */
+     * @var TransactionModel
+     */
     protected $transactionModel;
-    
+
     public function __construct(TransactionModel $transactionModel)
     {
         $this->transactionModel = $transactionModel;
@@ -29,5 +29,17 @@ class TransactionRepository implements RepositoryInterface
         $transactionModel->id_payer = $data['id_payer'];
         $transactionModel->id_payee = $data['id_payee'];
         return $transactionModel->save();
+    }
+
+    /**
+     * getTransactionByUuid
+     *
+     * @param string $uuid
+     * @return array
+     */
+    public function getTransactionByUuid(string $uuid): array
+    {
+        $transaction = $this->transactionModel::where('uuid', $uuid)->first();
+        return (null !== $transaction) ? $transaction->toArray() : [];
     }
 }

@@ -12,6 +12,12 @@ class WalletModel extends Model
     protected $table = "wallets";
     protected $primaryKey = "id";
 
+    protected $fillable = array(
+        "uuid",
+        "id_user",
+        "balance",
+    );
+
     public function user()
     {
         return $this->belongsTo(UserModel::class, "id_user");

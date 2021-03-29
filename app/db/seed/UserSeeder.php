@@ -1,6 +1,7 @@
 <?php
 
 use Phinx\Seed\AbstractSeed;
+use PPApp\Models\UserModel;
 
 class UserSeeder extends AbstractSeed
 {
@@ -30,13 +31,13 @@ class UserSeeder extends AbstractSeed
             ));
 
             switch ((int) $user['type']) {
-                case \PPApp\Services\UserService::USER_TYPE_PERSON:
+                case UserModel::USER_TYPE_PERSON:
                     $tbPersonUsers->insert(array(
                         "id_user" => $user['id'],
                         "cpf" => $user['cpf'],
                     ));
                     break;
-                case \PPApp\Services\UserService::USER_TYPE_BUSINESS:
+                case UserModel::USER_TYPE_BUSINESS:
                     $tbBusinessUsers->insert(array(
                         "id_user" => $user['id'],
                         "cnpj" => $user['cnpj'],

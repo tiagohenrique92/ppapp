@@ -17,6 +17,7 @@ use PPApp\Exceptions\Payment\PaymentExternalNotificationException;
 use PPApp\Exceptions\User\UserNotFoundException;
 use PPApp\Exceptions\User\UserWalletNotFoundException;
 use PPApp\Infra\DB;
+use PPApp\Models\UserModel;
 use PPApp\Repositories\TransactionRepository;
 use PPApp\Services\ExternalAuthorizationService;
 use PPApp\Services\ExternalNotificationService;
@@ -192,7 +193,7 @@ class PaymentService
             throw PayerNotFoundException::create(array("payerUuid" => $payerUuid));
         }
 
-        if ($payer->getType() === UserService::USER_TYPE_BUSINESS) {
+        if ($payer->getType() === UserModel::USER_TYPE_BUSINESS) {
             throw PayerIsBusinessUserException::create(array("payerUuid" => $payerUuid));
         }
     }
