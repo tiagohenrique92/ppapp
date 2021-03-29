@@ -15,12 +15,8 @@ $ composer install
 
 Execute o docker para subir o projeto.
 ```bash
-$ docker-compose up
+$ docker-compose up -d
 ```
-
-Modifique o arquivo `ppapp/app/config.php` com as informações de conexão com o banco de dados: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT`.
-
-> Certifique-se de que o banco de dados informado já esteja criado, caso contrário o próximo passo irá falhar.
 
 Acesse o container ppapp:
 
@@ -39,10 +35,6 @@ Para popular as tabelas com dados para testes, execute o comando *seed* do *phin
 ```bash
 $ php vendor/bin/phinx seed:run -c app/phinx.php
 ```
-
-> Caso queira modificar os dados a serem populados, altere o arquivo `ppapp/app/db/userSeed.json`.
-
-> A propriedade `type` deve ser 1 para usuários comuns(cpf) e 2 para usuários empresariais(cnpj).
 
 Crie uma entrada para o virtual host no seu arquivo de hosts.
 ```
