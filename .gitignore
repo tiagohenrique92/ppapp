@@ -1,5 +1,7 @@
 logs/*
+!logs/empty
 vendor/*
 composer.lock
-docker/nginx/logs/myppapp.test.error.log
-docker/nginx/logs/myppapp.test.access.log
+docker/nginx/logs/*
+!docker/nginx/logs/access.log
+!docker/nginx/logs/error.log
